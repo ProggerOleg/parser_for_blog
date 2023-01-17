@@ -1,5 +1,6 @@
 import random
-import sqlite3
+from getpass import getpass
+from mysql.connector import connect, Error
 import requests
 from slugify import slugify
 from bs4 import BeautifulSoup
@@ -46,13 +47,22 @@ def get_data(url_of_site):
 
 
 def insert_db(title, description, content, image, time_create, author, post_url):
-    connection = sqlite3.connect('/home/oleg/PycharmProjects/pythonProject/blog/db.sqlite3')
-    cursor = connection.cursor()
-    cursor.execute("""
-            INSERT INTO blog_app_post(title, h1, description, content, image, time_create, author_id, url) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (title, title, description, content,
+
+    try:
+        with connect(
+            host="localhost",
+            user='root',
+            password='1234',
+        ) as connection:
+            cursor = connection.cursor()
+            cursor.execute('USE blog;')
+            cursor.execute("""
+                INSERT INTO blog_app_post(title, h1, description, content, image, time_create, author_id, url) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", (title, title, description, content,
                                                  image, time_create, author, post_url))
-    connection.commit()
+            connection.commit()
+    except Error as e:
+        print(e)
 
 
 def main():
